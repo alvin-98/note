@@ -1,0 +1,21 @@
+{
+  "manifest_version": 3,
+  "name": "Floating Notes",
+  "version": "1.0",
+  "description": "A minimalist note-taking extension",
+  "permissions": ["storage", "tabs", "activeTab", "downloads", "scripting"],
+  "host_permissions": ["<all_urls>"],
+  "action": {
+    "default_icon": {
+      "16": "images/icon16.png",
+      "48": "images/icon48.png",
+      "128": "images/icon128.png"
+    }
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "chrome_url_overrides": {
+    "newtab": "newtab.html"
+  }
+}
