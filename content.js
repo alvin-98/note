@@ -27,6 +27,10 @@ chrome.storage.local.get(["darkMode"], (result) => {
 function createNoteWidget() {
   const widget = document.createElement("div");
   widget.className = "note-widget light-mode"; // Default to light mode
+
+  // Set initial height to viewport height minus margins
+  widget.style.height = `${window.innerHeight - 40}px`;
+
   widget.innerHTML = `
     <div class="note-header">
       <span class="drag-handle">↔</span>
@@ -40,12 +44,57 @@ function createNoteWidget() {
   `;
 
   makeWidgetDraggable(widget);
+  makeWidgetResizable(widget);
   setupEventListeners(widget);
+
   if (isDarkMode) {
     updateTheme(widget);
   }
 
+  // Focus the textarea after a brief delay
+  setTimeout(() => {
+    widget.querySelector(".note-content").focus();
+  }, 100);
+
   return widget;
+}
+
+function makeWidgetResizable(widget) {
+  let isResizing = false;
+  let startHeight, startY;
+
+  const resizeHandle = document.createElement("div");
+  resizeHandle.className = "resize-handle";
+  widget.appendChild(resizeHandle);
+
+  const startResize = (e) => {
+    isResizing = true;
+    startY = e.clientY;
+    startHeight = widget.offsetHeight;
+    document.documentElement.style.cursor = "ns-resize";
+    e.preventDefault();
+  };
+
+  const resize = (e) => {
+    if (!isResizing) return;
+
+    const deltaY = e.clientY - startY;
+    const newHeight = Math.max(200, startHeight + deltaY); // Minimum height of 200px
+    widget.style.height = `${newHeight}px`;
+    e.preventDefault();
+  };
+
+  const stopResize = () => {
+    if (isResizing) {
+      isResizing = false;
+      document.documentElement.style.cursor = "";
+    }
+  };
+
+  // Add event listeners
+  resizeHandle.addEventListener("mousedown", startResize);
+  document.addEventListener("mousemove", resize);
+  document.addEventListener("mouseup", stopResize);
 }
 
 function makeWidgetDraggable(widget) {
@@ -167,7 +216,7 @@ function setupEventListeners(widget) {
   // Handle keyboard shortcuts
   textarea.addEventListener("keydown", (e) => {
     // Ctrl/Cmd + S to save
-    if ((e.ctrlKey || e.metaKey) && e.key === "s") {
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s") {
       e.preventDefault();
       const content = textarea.value.trim();
       if (content) {
